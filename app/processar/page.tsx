@@ -63,21 +63,26 @@ export default function ProcessarPage() {
       formData.append('andamento', andamento!)
       if (anterior) formData.append('anterior', anterior)
 
-      const res = await fetch('/api/processar', {
-        method: 'POST',
-        body: formData,
-      })
+     const res = await fetch('/api/processar', {
+  method: 'POST',
+  body: formData,
+})
 
-      if (!res.ok) {
-        const err = await res.json()
-        setResult({ type: 'error', message: err.error || 'Erro ao processar planilhas.' })
-        return
-      }
+const data = await res.json()
 
-      // Download do arquivo
-      const blob = await res.blob()
-      const fileName = res.headers.get('X-File-Name') || 'planilha_gerada.xlsx'
-      const url = URL.createObjectURL(blob)
+if (!res.ok || !data.success) {
+  setResult({ type: 'error', message: data.error || 'Erro ao processar planilhas.' })
+  return
+}
+
+const fileName = data.fileName
+const url = data.downloadUrl
+
+// Auto-trigger download
+const a = document.createElement('a')
+a.href = url
+a.download = fileName
+a.click()
 
       const now = new Date()
       const dateTime = now.toLocaleString('pt-BR', {
